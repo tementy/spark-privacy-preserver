@@ -1,3 +1,4 @@
+import math
 import hashlib
 import pandas as pd
 
@@ -164,50 +165,87 @@ def partition_dataset(df, k, l, t, categorical, feature_columns, sensitive_colum
 
 
 def agg_categorical_column(series):
-    return ','.join(set(series))
+    return ','.join(map(str, set(series)))
 
+
+#def agg_numerical_column(series):
+#    minimum = math.floor(series.min())
+#    maximum = math.ceil(series.max())
+#    if(maximum == minimum):
+#        string = str(maximum)
+#    else:
+#        string = ''
+#        maxm = str(maximum)
+#        minm = str(minimum)
+#
+#        if(len(minm) == 1):
+#            if(minimum >= 5):
+#                string = '5-'
+#            else:
+#                string = '0-'
+#        else:
+#            if (minm[-1]=='0'):
+#                string = minm +"-"
+#            else:
+#                min_start = minm[:-1]
+#                if(minimum >= int(min_start+'5')):
+#                    string = min_start+'5-'
+#                else:
+#                    string = min_start+'0-'
+#
+#        if(len(maxm) == 1):
+#            if(maximum >= 5):
+#                string += "10"
+#            else:
+#                string += '5'
+#        else:
+#            if(maxm[-1]=='0'):
+#                string += maxm
+#            else:
+#                max_start = maxm[:-1]
+#                if(maximum > int(max_start+'5')):
+#                    string += str(int(max_start+'0') + 10)
+#                else:
+#                    string += max_start+'5'
+#
+#    return string
+
+def int_lb(x):
+    if x < 0:
+        return -int_ub(-x)
+    else:
+        r = x % 10
+        return x if r == 0 else (x - r) if r < 5 else (x - r + 5)
+
+def int_ub(x):
+    if x < 0:
+        return -int_lb(-x)
+    else:
+        r = x % 10
+        return x if r == 0 else (x - r + 5) if r <= 5 and x != 5 else (x - r + 10)
+
+def float_lb(x):
+    return 0.1 * int_lb(math.floor(x * 10))
+
+def float_ub(x):
+    return 0.1 * int_ub(math.ceil(x * 10))
+
+def val_lb(x):
+    return float_lb(x) if isinstance(x, float) else int_lb(int(x))
+
+def val_ub(x):
+    return float_ub(x) if isinstance(x, float) else int_ub(int(x))
+
+def range_str(min_val, max_val):
+    if min_val != max_val:
+        lb = val_lb(min_val)
+        ub = val_ub(max_val)
+        return f"{lb} - {ub}"
+    else:
+        return f"{min_val}"
 
 def agg_numerical_column(series):
-    minimum = series.min()
-    maximum = series.max()
-    if(maximum == minimum):
-        string = str(maximum)
-    else:
-        string = ''
-        maxm = str(maximum)
-        minm = str(minimum)
-
-        if(len(minm) == 1):
-            if(minimum >= 5):
-                string = '5-'
-            else:
-                string = '0-'
-        else:
-            if (minm[-1]=='0'):
-                string = minm +"-"
-            else:
-                min_start = minm[:-1]
-                if(minimum >= int(min_start+'5')):
-                    string = min_start+'5-'
-                else:
-                    string = min_start+'0-'
-
-        if(len(maxm) == 1):
-            if(maximum >= 5):
-                string += "10"
-            else:
-                string += '5'
-        else:
-            if(maxm[-1]=='0'):
-                string += maxm
-            else:
-                max_start = maxm[:-1]
-                if(maximum > int(max_start+'5')):
-                    string += str(int(max_start+'0') + 10)
-                else:
-                    string += max_start+'5'
-
-    return string
+    return range_str(series.min(), series.max())
 
 def anonymizer(df, partitions, feature_columns, sensitive_column, categorical, max_partitions=None):
     aggregations = {}
