@@ -51,6 +51,9 @@ Use `pip install spark_privacy_preserver` to install library
 
 Clone the repository to your PC and run `pip install .` to build and install the package.
 
+Manual requirements installation with Hadoop 2.10.2, Spark 2.4.5, jdk1.8.0_231, python3.7.7:
+`pip3 install numpy==1.17.3 pyarrow==0.14.1 diffprivlib==0.2.1 tabulate==0.8.7 mypy kmodes pandas`
+
 ## Usage
 
 Usage of each module is described in the relevant section.
